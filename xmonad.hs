@@ -28,15 +28,15 @@ focusedBorderC :: [Char]
 focusedBorderC = "white"
 
 browser :: X ()
-browser = spawn "google-chrome"
+browser = spawn "pgrep chrome || google-chrome"
 chat :: X ()
 chat    = spawn "slack"
 term :: [Char]
-term    = "gnome-terminal"
+term    = "pgrep gnome-terminal || gnome-terminal"
 emacs :: X ()
-emacs   = spawn "emacs -l ~/workdir/dot-emacs/init.el"
+emacs   = spawn "pgrep emacs || emacs -l ~/workdir/dot-emacs/init.el"
 code :: X ()
-code    = spawn "code"
+code    = spawn "pgrep code || code"
 virt :: X ()
 virt    = spawn "virt-manager"
 remote :: X ()
@@ -80,6 +80,7 @@ myStartupHook = do
   browser
   chat
   code
+  emacs
 
 main :: IO ()
 main = do
