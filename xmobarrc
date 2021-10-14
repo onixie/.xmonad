@@ -1,4 +1,4 @@
-Config { font = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+Config { font = "xft:Monospace:regular:size=9,WenQuanYi Zen Hei:size=9" -- "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
        , additionalFonts = []
        , borderColor = "black"
        , border = TopB
@@ -15,8 +15,8 @@ Config { font = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
        , iconRoot = "."
        , allDesktops = True
        , overrideRedirect = True
-       , commands = [ Run Weather "RJTT" ["-t","<station>: <tempC>C", -- station id can be found from https://www.aviationweather.gov/metar
-                                          "-L","18","-H","25",
+       , commands = [ Run Weather "RJTT" ["-t","<station>: <skyCondition> <tempC>C <rh>% <windMs>m/s", -- station id can be found from https://www.aviationweather.gov/metar
+                                          "-L","20","-H","26",
                                           "--normal","green",
                                           "--high","red",
                                           "--low","lightblue"] 36000
@@ -28,8 +28,9 @@ Config { font = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
                     , Run Swap [] 10
                     , Run Com "uname" ["-s","-r"] "" 36000
                     , Run Date "%a %b %_d %Y %H:%M:%S" "date" 10
+		    , Run StdinReader
                     ]
        , sepChar = "%"
        , alignSep = "}{"
-       , template = "%uname% | %cpu% | %memory% * %swap% | %enp2s0% } { %RJTT% | <fc=#ee9a00>%date%</fc>"
+       , template = "%uname% | %cpu% | %memory% * %swap% | %enp2s0% } %StdinReader% { %RJTT% | <fc=#ee9a00>%date%</fc>"
        }

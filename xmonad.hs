@@ -82,10 +82,14 @@ myStartupHook = do
   code
   emacs
 
+myXmobar = statusBar "xmobar" (xmobarPP { ppLayout = const "", ppTitle = const "" }) toggleStrutsKey
+  where
+    toggleStrutsKey XConfig {XMonad.modMask = modMask} = (modMask, xK_b)
+
 main :: IO ()
 main = do
         setRandomWallpaper ["$HOME/Pictures/Wallpapers"]
-        xmonad =<< xmobar config
+        xmonad =<< myXmobar config
   where
     config = docks def
       { workspaces = ["1:browser", "2:chat", "3:term", "4:code", "5:emacs", "6:virt", "7:remote", "8:file", "9", "0"]
