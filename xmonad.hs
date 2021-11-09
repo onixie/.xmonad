@@ -1,24 +1,28 @@
+
 import XMonad
 import XMonad.Config ()
-import Data.Ratio((%))
 import XMonad.StackSet (shift, greedyView, RationalRect(..))
+
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.DynamicLog
-import XMonad.Layout.PerWorkspace
-import XMonad.Layout.SimplestFloat
-import XMonad.Util.EZConfig(additionalKeys)
-
-import XMonad.Layout.LayoutScreens (layoutScreens)
-import XMonad.Layout.TwoPane
-
-import Data.Monoid
-import Data.Default ()
-
 import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.FadeWindows (fadeWindowsEventHook, fadeWindowsLogHook, opaque, transparency, Opacity)
 
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.SimplestFloat
+import XMonad.Layout.LayoutScreens (layoutScreens,layoutSplitScreen)
+import XMonad.Layout.TwoPane
+import XMonad.Layout.ThreeColumns
+import XMonad.Layout.Spiral
+import XMonad.Layout.Grid
+
+import XMonad.Util.EZConfig(additionalKeys)
 import XMonad.Wallpaper
+
+import Data.Ratio((%))
+import Data.Monoid
+import Data.Default ()
 
 modM :: KeyMask
 modM   = mod4Mask
@@ -43,6 +47,8 @@ remote :: X ()
 remote  = spawn "vinagre"
 logout :: X ()
 logout  = spawn "loginctl kill-session $XDG_SESSION_ID"
+screenshot :: X ()
+screenshot = spawn "gnome-screenshot -i"
 
 myManageHook :: Query (Data.Monoid.Endo WindowSet)
 myManageHook = composeAll
@@ -58,8 +64,11 @@ myManageHook = composeAll
                , className =? "Thunar" --> doShift "8:file"
                , className =? "Nautilus" --> doShift "8:file"
                , title     =? "Whisker Menu" --> doFloat
+               , className =? "Gnome-control-center" --> doFloat
                , className =? "Wine" --> doFloat
                , className =? "xfce4-notes" --> doFloat
+               , className =? "Weston Compositor" --> doFloat
+               , className =? "Gnome-screenshot" --> doFloat
                -- , className =? "Google-chrome" --> doRectFloat (RationalRect ((1920 - 1368) % (1920 * 2)) ((1080 - 768) % (1080 * 2)) (1368 % 1920) (768 % 1080))
                , className =? "Update-manager" --> doRectFloat (RationalRect (1 % 4) (1 % 3) (1 % 2) (1 % 2)) -- doCenterFloat
                , className =? "Xfrun4" --> doRectFloat (RationalRect (1 % 4) (1 % 3) (1 % 2) (1 % 2)) -- doCenterFloat
@@ -73,7 +82,7 @@ myFadeHook = composeAll [isUnfocused --> transparency 0.2
 
 myStartupHook :: X ()
 myStartupHook = do
-  layoutScreens 2 (TwoPane 0.5 0.5)
+  layoutScreens 2 myLayout
   -- spawn "xmobar -x 1"
   -- spawn "xcompmgr -c"
   spawn term
@@ -81,6 +90,16 @@ myStartupHook = do
   chat
   code
   emacs
+
+myLayout = layoutTwoPane -- ||| layoutSpiral ||| layoutTall ||| layoutMirror ||| layoutSpiral ||| layoutGrid ||| layoutThreeCol ||| layoutFull
+    where
+      layoutTall = Tall 1 (3/100) (1/2)
+      layoutSpiral = spiral (125 % 146)
+      layoutGrid = Grid
+      layoutMirror = Mirror (Tall 1 (3/100) (3/5))
+      layoutTwoPane = TwoPane 0.5 0.5
+      layoutThreeCol = ThreeColMid 1 (3/100) (1/2)
+      layoutFull = Full
 
 myXmobar = statusBar "xmobar" (xmobarPP { ppLayout = const "", ppTitle = const "" }) toggleStrutsKey
   where
@@ -112,9 +131,10 @@ main = do
       , ((modM,               xK_KP_5), code)
       , ((modM,               xK_KP_6), virt)
       , ((modM,               xK_KP_7), remote)
+      , ((modM,               xK_s   ), screenshot)
       , ((modM .|. shiftMask, xK_q   ), logout)
       , ((modM .|. shiftMask, xK_b   ), sendMessage $ ToggleStrut U)
-      , ((modM .|. shiftMask, xK_space), layoutScreens 2 (TwoPane 0.5 0.5))
+      , ((modM .|. shiftMask, xK_space), layoutScreens 2 myLayout)
       , ((modM .|. controlMask .|. shiftMask, xK_space), rescreen)
       ] ++ [((m .|. modM, key), screenWorkspace sc >>= flip whenJust (windows . f))
             | (key, sc) <- zip [xK_w, xK_e] [0..1]
