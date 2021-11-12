@@ -1,5 +1,10 @@
 
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
+import Graphics.X11.Xlib.Types (Display)
 import XMonad
+import XMonad.Core (XConf)
 import XMonad.Config ()
 import XMonad.StackSet (shift, greedyView, RationalRect(..))
 
@@ -49,6 +54,10 @@ logout :: X ()
 logout  = spawn "loginctl kill-session $XDG_SESSION_ID"
 screenshot :: X ()
 screenshot = spawn "gnome-screenshot -i"
+gnomeSession :: Display -> X ()
+gnomeSession display = spawn $ "pkill Xephyr; Xephyr -resizeable -fullscreen :"++nd++"& DISPLAY=:"++nd++" gnome-session"
+  where
+    nd = (show . (1+) . read . drop 1 . displayString) display
 
 myManageHook :: Query (Data.Monoid.Endo WindowSet)
 myManageHook = composeAll
@@ -63,6 +72,7 @@ myManageHook = composeAll
                , className =? "Vinagre" --> doShift "7:remote"
                , className =? "Thunar" --> doShift "8:file"
                , className =? "Nautilus" --> doShift "8:file"
+               , className =? "Xephyr" --> doShift "9:gnome"
                , title     =? "Whisker Menu" --> doFloat
                , className =? "Gnome-control-center" --> doFloat
                , className =? "Wine" --> doFloat
@@ -85,11 +95,14 @@ myStartupHook = do
   layoutScreens 2 myLayout
   -- spawn "xmobar -x 1"
   -- spawn "xcompmgr -c"
+  XConf{display} <- ask
+  -- spawn ("zenity --info --text="++displayString display)
   spawn term
   browser
   chat
   code
   emacs
+  gnomeSession display
 
 myLayout = layoutTwoPane -- ||| layoutSpiral ||| layoutTall ||| layoutMirror ||| layoutSpiral ||| layoutGrid ||| layoutThreeCol ||| layoutFull
     where
@@ -111,7 +124,7 @@ main = do
         xmonad =<< myXmobar config
   where
     config = docks def
-      { workspaces = ["1:browser", "2:chat", "3:term", "4:code", "5:emacs", "6:virt", "7:remote", "8:file", "9", "0"]
+      { workspaces = ["1:browser", "2:chat", "3:term", "4:code", "5:emacs", "6:virt", "7:remote", "8:file", "9:gnome"]
       , manageHook = myManageHook <+> manageHook def
       , layoutHook = avoidStruts $ onWorkspace "float" simplestFloat $ layoutHook def
       , logHook = fadeWindowsLogHook myFadeHook
